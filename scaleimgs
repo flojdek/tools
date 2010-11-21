@@ -9,26 +9,19 @@ if __name__ == '__main__':
 
 	if len(sys.argv) != 4:
 
-		print 'Usage: scaleimgs <directory> <medium_factor> <small_factor>'
+		print 'Usage: scaleimgs <in_dir> <out_dir> <factor>'
 
 		sys.exit(0)
 
-	files_dir_path = sys.argv[1]	
-	medium_factor = sys.argv[2]
-	small_factor = sys.argv[3]
+	in_dir_path = sys.argv[1]	
+	out_dir_path = sys.argv[2]	
+	factor = sys.argv[3]
 	
-	files_list = os.listdir(files_dir_path)
-	files_list = map(lambda x: files_dir_path + os.sep + x, files_list)
+	files_list = os.listdir(in_dir_path)
+	files_list = map(lambda x: in_dir_path + os.sep + x, files_list)
 	files_list.sort()
 
-	medium_dir_path = files_dir_path + os.sep + 'medium' + os.sep
-	small_dir_path = files_dir_path + os.sep + 'small' + os.sep
-
-	medium_dir_path = os.path.normpath(medium_dir_path)
-	small_dir_path = os.path.normpath(small_dir_path)
-
-	os.mkdir(medium_dir_path)
-	os.mkdir(small_dir_path)
+	os.mkdir(out_dir_path)
 
 	for file_path in files_list:
 
@@ -42,20 +35,11 @@ if __name__ == '__main__':
 
 			print file_path
 
-			medium_file_name = file_name + '_medium.' + file_extension
-			small_file_name = file_name + '_small.' + file_extension
-			medium_file_path = medium_dir_path + os.sep + medium_file_name 
-			small_file_path = small_dir_path + os.sep + small_file_name
+			out_file_name = file_name + '_' + factor + '.' + file_extension
+			out_file_path = out_dir_path + os.sep + out_file_name
+			out_file_path = os.path.normpath(out_file_path)
 
-			medium_file_path = os.path.normpath(medium_file_path)
-			small_file_path = os.path.normpath(small_file_path)
+			subprocess.call(['convert', file_path, '-resize', factor,
+					out_file_path])
 
-			subprocess.call(['convert', file_path, '-resize', medium_factor,
-					medium_file_path])
-
-			print '    ' + medium_file_path
-
-			subprocess.call(['convert', file_path, '-resize', small_factor,
-					small_file_path])
-
-			print '    ' + small_file_path
+			print '    ' + out_file_path
