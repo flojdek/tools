@@ -25,6 +25,7 @@ if __name__ == '__main__':
 	
 	files_list = os.listdir(in_dir_path)
 	files_list = map(lambda x: in_dir_path + os.sep + x, files_list)
+	files_list = filter(lambda x: not os.path.isdir(x), files_list)
 	files_list.sort()
 
 	os.mkdir(out_dir_path)
@@ -32,16 +33,23 @@ if __name__ == '__main__':
 	for file_path in files_list:
 
 		base_name = os.path.basename(file_path)
-		rgx = re.search('(.*)\.(.*)', base_name)
+		rgx = re.search('(.*)\.(.*)|(.*)', base_name)
 
 		if rgx != None:
 
-			file_name = rgx.group(1)
-			file_extension = rgx.group(2)
+			if rgx.group(1) != None and rgx.group(2) != None:
+
+				file_name = rgx.group(1)
+				file_extension = '.' + rgx.group(2)
+
+			else:
+
+				file_name = rgx.group(3)
+				file_extension = ''
 
 			print file_path
 
-			out_file_name = file_name + '_' + out_file_suffix + '.' + file_extension
+			out_file_name = file_name + '_' + out_file_suffix + file_extension
 			out_file_path = out_dir_path + os.sep + out_file_name
 			out_file_path = os.path.normpath(out_file_path)
 
