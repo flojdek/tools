@@ -9,13 +9,19 @@ if __name__ == '__main__':
 
 	if len(sys.argv) != 4:
 
-		print 'Usage: scaleimgs <in_dir> <out_dir> <factor>'
+		print 'Usage: scaleimgs <in_dir> <out_dir> <factor_in_percent>'
 
 		sys.exit(0)
 
 	in_dir_path = sys.argv[1]	
 	out_dir_path = sys.argv[2]	
 	factor = sys.argv[3]
+	out_file_suffix = factor
+
+	if factor[-1] != '%':
+		factor += '%'
+	else:
+		out_file_suffix = out_file_suffix[0:-1]
 	
 	files_list = os.listdir(in_dir_path)
 	files_list = map(lambda x: in_dir_path + os.sep + x, files_list)
@@ -35,7 +41,7 @@ if __name__ == '__main__':
 
 			print file_path
 
-			out_file_name = file_name + '_' + factor + '.' + file_extension
+			out_file_name = file_name + '_' + out_file_suffix + '.' + file_extension
 			out_file_path = out_dir_path + os.sep + out_file_name
 			out_file_path = os.path.normpath(out_file_path)
 
