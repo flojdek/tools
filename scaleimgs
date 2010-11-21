@@ -19,8 +19,11 @@ if __name__ == '__main__':
 	out_file_suffix = factor
 
 	if factor[-1] != '%':
+
 		factor += '%'
+
 	else:
+
 		out_file_suffix = out_file_suffix[0:-1]
 	
 	files_list = os.listdir(in_dir_path)
