@@ -9,7 +9,7 @@ if __name__ == '__main__':
 
 	if len(sys.argv) != 4:
 
-		print 'Usage: scaleimgs <in_dir> <out_dir> <factor_in_percent>'
+		print 'Usage: scaleimgs <in_dir_with_images> <out_dir> <scale_factor_in_percent>'
 
 		sys.exit(0)
 
