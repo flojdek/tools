@@ -1,0 +1,172 @@
+#!/usr/bin/python
+# -*- coding: utf-8 -*-
+
+from BeautifulSoup import BeautifulStoneSoup
+from BeautifulSoup import BeautifulSoup
+import urllib
+import time
+import sys
+import codecs
+import curses
+import locale
+import math
+
+import utils
+import ripoff
+
+# Locale configuration needed for curses.
+
+locale.setlocale(locale.LC_ALL, '')
+native = locale.getpreferredencoding()
+
+# Configuration class.
+
+class Config:
+	MAXIMUM_RSS_NEWS_TO_FETCH = 4	
+
+# Helper functions.
+
+def init_color_pairs():
+	curses.init_pair(1, curses.COLOR_BLACK, curses.COLOR_GREEN)
+
+# RSS feeds.
+
+rss_feeds = {
+	'wyborcza_biz': {
+		'title': 'http://wyborcza.biz',
+		'url': 'http://wyborcza.biz/pub/rss/wyborcza_biz_wiadomosci.htm', 
+		'title_rip_off': ripoff.title1 
+	},
+	'money_najnowsze': {
+		'title': 'http://money.pl',
+		'url': 'http://www.money.pl/rss/main.xml', 
+		'title_rip_off': ripoff.title2 
+	},
+	'money_gielda': {
+		'title': 'http://money.pl/gielda',
+		'url': 'http://www.money.pl/rss/gielda.xml', 
+		'title_rip_off': ripoff.title2
+	},
+	'money_gospodarka': {
+		'title': 'http://money.pl/gospodarka',
+		'url': 'http://www.money.pl/rss/gospodarka.xml', 
+		'title_rip_off': ripoff.title2
+	},
+	#'money_komunikaty': {
+	#	'title': 'http://money.pl/gielda',
+	#	'url': 'http://www.money.pl/d/rss/komunikaty.xml', 
+	#	'title_rip_off': ripoff.title2
+	#},
+	'money_fundusze': {
+		'title': 'http://money.pl/fundusze',
+		'url': 'http://www.money.pl/rss/fundusze.xml', 
+		'title_rip_off': ripoff.title2
+	},
+	'parkiet_com': {
+		'title': 'http://parkiet.com',
+		'url': 'http://rss.feedsportal.com/c/32890/f/530153/index.rss', 
+		'title_rip_off': ripoff.title1
+	},
+	'parkiet_com_analiza_rynek': {
+		'title': 'http://www.parkiet.com/temat/32-Analiza-i-rynek.html',
+		'url': 'http://rss.feedsportal.com/c/32890/f/530141/index.rss', 
+		'title_rip_off': ripoff.title1
+	}
+}
+
+# Stock recommendations.
+
+recomms = {
+	'gielda_wp_pl': {
+		'title': 'http://gielda.wp.pl/rekomendacje.html',
+		'url': 'http://gielda.wp.pl/rekomendacje.html',
+	},
+	'money_pl': {
+		'title': 'http://www.money.pl/gielda/rekomendacje/',
+		'url': 'http://www.money.pl/gielda/rekomendacje',
+	}
+}
+
+# GPW helper application.
+
+def create_rss_window(rss):
+	soup = BeautifulStoneSoup(urllib.urlopen(rss['url']).read())
+	news = soup.channel.findAll('item')
+	win = curses.newwin(Config.MAXIMUM_RSS_NEWS_TO_FETCH + 2, 
+			max(map(lambda e: len(e.title.string) + 2, news)), 0, 0)
+	win.addstr(0, 0, rss['title'], curses.color_pair(1))
+	info_y = 1
+	info_x = 0
+	for info in utils.take(news, Config.MAXIMUM_RSS_NEWS_TO_FETCH):
+		win.addstr(info_y, info_x, rss['title_rip_off'](info.title.encode(native)))
+		info_y = info_y + 1
+	
+	return win
+
+def create_wp_pl_recomms_window():
+	soup = BeautifulSoup(urllib.urlopen(recomms['gielda_wp_pl']['url']).read())
+	data = soup.find(attrs={'id': 'sList'}).table.tbody.findAll('tr')
+	lst = [[]]
+	for elem in data:
+		tmp = []
+		for td in elem:
+			if td != None:
+				if hasattr(td, 'a') and td.a != None and td.a.string != None:
+					tmp.append(td.a.string.strip())
+				elif td.string != None and len(td.string) > 0:
+					tmp.append(td.string.strip())
+		tmp = filter(lambda x: len(x) > 0, tmp)
+		lst.append(tmp)
+	lst = filter(lambda x: x != [], lst)
+	lst = utils.tail(lst)
+	for e in lst:
+		e[-1] = str(math.floor(float(ripoff.percent(ripoff.td(e[-1])))))
+	win = curses.newwin(len(lst) + 1, max(map(lambda x: len(' '.join(x)), lst)), 0, 0)
+	win.addstr(0, 0, recomms['gielda_wp_pl']['title'], curses.color_pair(1))
+	info_y = 1
+	info_x = 0
+	for info in lst:
+		win.addstr(info_y, info_x, ' '.join(info))
+		info_y = info_y + 1
+
+	return win
+
+def create_windows():
+	windows = []
+	for key, val in rss_feeds.iteritems():
+		windows.append(create_rss_window(val))
+	windows.append(create_wp_pl_recomms_window())
+
+	return windows
+
+def layout_windows(stdscr, windows):
+	next_x = next_y = max_width = 0
+	(scr_height, scr_width) = stdscr.getmaxyx()
+	for win in windows:
+		(height, width) = win.getmaxyx()
+		max_width = max(max_width, width)
+		if next_y + height >= scr_height:
+			next_x = next_x + max_width
+			next_y = 0
+		win.mvwin(next_y, next_x)
+		next_y = next_y + height
+			
+def gpwhelper(stdscr):
+	init_color_pairs()
+
+	update = True
+	while True:
+		stdscr.clear()
+		stdscr.refresh()
+		if update: windows = create_windows()
+		layout_windows(stdscr, windows)
+		map(lambda w: w.refresh(), windows)	
+		update = False
+		command = stdscr.getch()
+		if command == ord('q'):
+			break
+		elif command == ord('r'):
+			update = True				
+	
+if __name__ == '__main__':
+	curses.wrapper(gpwhelper)
