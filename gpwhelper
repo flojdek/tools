@@ -126,6 +126,9 @@ def create_wp_pl_recomms_window():
 	info_y = 1
 	info_x = 0
 	for info in lst:
+		for i in range(0, len(info)):
+			info[i] = info[i].encode(native)
+	for info in lst:
 		win.addstr(info_y, info_x, ' '.join(info))
 		info_y = info_y + 1
 
