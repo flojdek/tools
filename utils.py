@@ -6,7 +6,4 @@ def head(lst):
 		return lst[0]
 
 def take(lst, n):
-	if n > len(lst):
-		return lst
-	else:
-		return lst[:n]
+	return lst[:n]
