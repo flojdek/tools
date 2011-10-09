@@ -1,0 +1,15 @@
+#!/bin/bash
+
+IDX=0
+
+for FILE in *;
+do
+	EXT=$(ls $FILE | cut -d'.' -f2)
+	if [ $IDX -lt 10 ]
+	then
+		cp "$FILE" "0$IDX.$EXT"
+	else
+		cp "$FILE" "$IDX.$EXT"
+	fi
+	IDX=$(($IDX + 1))
+done
