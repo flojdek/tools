@@ -4,7 +4,7 @@ IDX=0
 
 for FILE in *;
 do
-	EXT=$(ls $FILE | cut -d'.' -f2)
+	EXT=$(ls "$FILE" | cut -d'.' -f2)
 	if [ $IDX -lt 10 ]
 	then
 		cp "$FILE" "0$IDX.$EXT"
