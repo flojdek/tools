@@ -1,0 +1,14 @@
+#!/bin/bash
+
+if [ $# -ne 1 ]
+then
+	echo "Usage: prefixfiles <prefix>"
+	exit 0
+fi
+
+PREFIX=$1
+
+for FILE in *;
+do
+	cp "$FILE" "$PREFIX$FILE"
+done

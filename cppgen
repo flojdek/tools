@@ -1,0 +1,104 @@
+#!/usr/bin/python
+
+import os
+import sys
+import getopt
+import operator
+import itertools
+
+def char_repeat(char, times = 1):
+	return reduce(operator.concat, [char for i in range(times)])
+
+def linesep(times = 1):
+	return char_repeat(os.linesep, times)
+
+def tab(times = 1):
+	return char_repeat('\t', times)
+
+def space(times = 1):
+	return char_repeat(' ', times)
+
+def begin_namespaces(f, namespaces):
+	max_name_len = max(map(lambda x: len(x), namespaces))
+	for ns in namespaces:
+		f.write('namespace ' + ns + space(max_name_len - len(ns) + 1) 
+			+ '{' + linesep())
+
+def end_namespaces(f, namespaces):
+	for ns in reversed(namespaces):
+		f.write('} // ' + ns + ' namespace' + linesep())
+
+def print_usage_and_exit():
+	print "Usage: ..."
+	sys.exit(0)
+
+if __name__ == '__main__':
+
+	try:
+		opts, args = getopt.gnu_getopt(sys.argv[1:], 'f:', 
+			['ns='])
+	except getopt.GetoptError, err:
+		sys.exit(err)
+
+	class_name = sys.argv[1]
+	namespaces = []
+	namespace_name_max_len = 0
+	output_file_name = class_name
+
+	for option, arg in opts:
+		if option in ('-h', '--help'):
+			print_usage_and_exit()
+		elif option in('--ns'):
+			namespaces = arg.split(',')
+			namespace_name_max_len = max(map(lambda x: len(x), namespaces))
+		elif option in ('-f'):
+			output_file_name = arg	
+	
+	header_file_path = output_file_name.lower() + '.h'
+	source_file_path = output_file_name.lower() + '.cpp'
+
+	if os.path.exists(header_file_path): 
+		sys.exit('File ' + header_file_path + ' already exists.')
+	if os.path.exists(source_file_path):
+		sys.exit('File ' + source_file_path + ' already exists.')
+	
+	header_file = open(header_file_path, 'w')	
+	source_file = open(source_file_path, 'w')
+
+	# Generate header file.
+
+	header_file.write('#ifndef INCLUDED_' + class_name.upper() + linesep())
+	header_file.write('#define INCLUDED_' + class_name.upper() + linesep(2))
+
+	begin_namespaces(header_file, namespaces)
+	header_file.write(linesep())
+
+	header_file.write('class ' + class_name + linesep())
+	header_file.write('{' + linesep())
+	header_file.write('public:' + linesep(2))
+	header_file.write(space(4) + class_name + '();' + linesep())
+	header_file.write(space(4) + '~' + class_name + '();' + linesep(2))
+	header_file.write('private:' + linesep(2))
+	header_file.write('};' + linesep(2))
+
+	end_namespaces(header_file, namespaces)
+	header_file.write(linesep())
+
+	header_file.write('#endif // INCLUDED_' + class_name.upper() + linesep())
+
+	# Generate source file.
+
+	source_file.write('#include "' + class_name.lower() + '.h"' + linesep(2))
+
+	begin_namespaces(source_file, namespaces)
+	source_file.write(linesep())
+
+	source_file.write(class_name + '::' + class_name + '()' + linesep())
+	source_file.write('{' + linesep() + '}' + linesep(2))
+	source_file.write(class_name + '::~' + class_name + '()' + linesep())
+	source_file.write('{' + linesep() + '}' + linesep(2))
+
+	end_namespaces(source_file, namespaces)
+
+	header_file.close()
+	source_file.close()
