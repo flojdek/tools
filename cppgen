@@ -35,15 +35,15 @@ def print_usage_and_exit():
 if __name__ == '__main__':
 
 	try:
-		opts, args = getopt.gnu_getopt(sys.argv[1:], 'f:', 
-			['ns='])
+		opts, args = getopt.gnu_getopt(sys.argv[1:], '', 
+			['ns=', 'filesname='])
 	except getopt.GetoptError, err:
 		sys.exit(err)
 
 	class_name = sys.argv[1]
 	namespaces = []
 	namespace_name_max_len = 0
-	output_file_name = class_name
+	files_name = class_name
 
 	for option, arg in opts:
 		if option in ('-h', '--help'):
@@ -51,24 +51,24 @@ if __name__ == '__main__':
 		elif option in('--ns'):
 			namespaces = arg.split(',')
 			namespace_name_max_len = max(map(lambda x: len(x), namespaces))
-		elif option in ('-f'):
-			output_file_name = arg	
+		elif option in ('--filesname'):
+			files_name = arg	
 	
-	header_file_path = output_file_name.lower() + '.h'
-	source_file_path = output_file_name.lower() + '.cpp'
+	header_file_name = files_name.lower() + '.h'
+	source_file_name = files_name.lower() + '.cpp'
 
-	if os.path.exists(header_file_path): 
-		sys.exit('File ' + header_file_path + ' already exists.')
-	if os.path.exists(source_file_path):
-		sys.exit('File ' + source_file_path + ' already exists.')
+	if os.path.exists(header_file_name): 
+		sys.exit('File ' + header_file_name + ' already exists.')
+	if os.path.exists(source_file_name):
+		sys.exit('File ' + source_file_name + ' already exists.')
 	
-	header_file = open(header_file_path, 'w')	
-	source_file = open(source_file_path, 'w')
+	header_file = open(header_file_name, 'w')	
+	source_file = open(source_file_name, 'w')
 
 	# Generate header file.
 
-	header_file.write('#ifndef INCLUDED_' + class_name.upper() + linesep())
-	header_file.write('#define INCLUDED_' + class_name.upper() + linesep(2))
+	header_file.write('#ifndef INCLUDED_' + files_name.upper() + linesep())
+	header_file.write('#define INCLUDED_' + files_name.upper() + linesep(2))
 
 	begin_namespaces(header_file, namespaces)
 	header_file.write(linesep())
@@ -79,6 +79,10 @@ if __name__ == '__main__':
 	header_file.write(space(4) + class_name + '();' + linesep())
 	header_file.write(space(4) + '~' + class_name + '();' + linesep(2))
 	header_file.write('private:' + linesep(2))
+	header_file.write(space(4) + class_name 
+		+ '(const ' + class_name + '& rhs);' + linesep());
+	header_file.write(space(4) + class_name + '& operator=(const ' + 
+		class_name + '& rhs);' + linesep());
 	header_file.write('};' + linesep(2))
 
 	end_namespaces(header_file, namespaces)
