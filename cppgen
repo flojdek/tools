@@ -92,7 +92,7 @@ if __name__ == '__main__':
 
 	# Generate source file.
 
-	source_file.write('#include "' + class_name.lower() + '.h"' + linesep(2))
+	source_file.write('#include "' + files_name.lower() + '.h"' + linesep(2))
 
 	begin_namespaces(source_file, namespaces)
 	source_file.write(linesep())
